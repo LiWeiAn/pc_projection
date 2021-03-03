@@ -65,7 +65,22 @@ private:
         pass.filter (*cloud_filtered);
         RCLCPP_INFO(this->get_logger(), "Publishing %f", minPt.y);
 
-        viewer.showCloud (cloud_filtered);
+        // Create a set of planar coefficients with X=Z=0,Y=1
+        pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
+        coefficients->values.resize (4);
+        coefficients->values[0] = 0;
+        coefficients->values[1] = 1.0;
+        coefficients->values[2] = 0;
+        coefficients->values[3] = 0;
+
+        // Create the filtering object
+        pcl::ProjectInliers<pcl::PointXYZRGB> proj;
+        proj.setModelType (pcl::SACMODEL_PLANE);
+        proj.setInputCloud (cloud_filtered);
+        proj.setModelCoefficients (coefficients);
+        proj.filter (*cloud_projected);
+
+        viewer.showCloud (cloud_projected);
 
 
     }
