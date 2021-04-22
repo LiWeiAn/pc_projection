@@ -21,7 +21,8 @@
 #include <pcl/common/common.h>
 #include <pcl/filters/passthrough.h>
 
-pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+
+//pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
 
 
 
@@ -31,14 +32,14 @@ public:
     MinimalPublisher()
             : Node("minimal_publisher"), count_(0)
     {
-        //publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("laser_pointcloud", 10);
+        publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("projected_pointcloud", 1);
 
         //subscriber for simulation (gazebo):
         //subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>("scan", rclcpp::QoS(rclcpp::SystemDefaultsQoS()), std::bind(&MinimalPublisher::scanCallback, this, _1));
         //this->set_parameter(rclcpp::Parameter("use_sim_time", true));
 
         //subscriber for real life scanner:
-        subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("depth_sensor_right/point_cloud", 1 , std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
+        subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("camera/depth/color/points", 1 , std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
 
     }
 
@@ -63,7 +64,7 @@ private:
         pass.setFilterLimits (minPt.y, -0.1);
         pass.setFilterLimitsNegative (true);
         pass.filter (*cloud_filtered);
-        RCLCPP_INFO(this->get_logger(), "Publishing %f", minPt.y);
+        //RCLCPP_INFO(this->get_logger(), "Publishing %f", minPt.y);
 
         // Create a set of planar coefficients with X=Z=0,Y=1
         pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
@@ -80,18 +81,19 @@ private:
         proj.setModelCoefficients (coefficients);
         proj.filter (*cloud_projected);
 
-        viewer.showCloud (cloud_projected);
+        //viewer.showCloud (cloud_projected);
 
+        sensor_msgs::msg::PointCloud2 output;
+        rclcpp::Time t = rclcpp::Node::now();
+        output.header.stamp = t;
+        pcl::toROSMsg(*cloud_projected, output);
+        publisher_->publish(output);
 
     }
     rclcpp::TimerBase::SharedPtr timer_;
-    //rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
-    //laser_geometry::LaserProjection projector_;
-    //std::shared_ptr<tf2_ros::Buffer> buffer_;
-    //std::shared_ptr<tf2_ros::TransformListener> listener_;
     size_t count_;
-    rclcpp::Clock::SharedPtr clock_;
 
 };
 

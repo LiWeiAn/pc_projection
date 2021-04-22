@@ -61,8 +61,22 @@ set(dependencies
 
 
 add_executable(pc_proj_node src/pc_projection.cpp)
+add_executable(ex_proj_node src/ex_projection.cpp)
 target_link_libraries (pc_proj_node ${PCL_LIBRARIES})
+target_link_libraries (ex_proj_node ${PCL_LIBRARIES})
 ament_target_dependencies(pc_proj_node
+  pcl_conversions
+  rclcpp
+  sensor_msgs
+  geometry_msgs
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
+  EIGEN3
+  PCL
+  ${dependencies}
+)
+ament_target_dependencies(ex_proj_node
   pcl_conversions
   rclcpp
   sensor_msgs
@@ -76,6 +90,8 @@ ament_target_dependencies(pc_proj_node
 )
 
 install(TARGETS pc_proj_node
+  DESTINATION lib/${PROJECT_NAME})
+  install(TARGETS ex_proj_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY 
