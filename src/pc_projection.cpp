@@ -28,14 +28,14 @@ public:
             : Node("minimal_publisher"), count_(0)
     {
        
-        publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("projected_pointcloud", 1);
+        publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("projected_pointcloud", 10);
         
         //subscriber for simulation (gazebo):
         //subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>("scan", rclcpp::QoS(rclcpp::SystemDefaultsQoS()), std::bind(&MinimalPublisher::scanCallback, this, _1));
         //this->set_parameter(rclcpp::Parameter("use_sim_time", true));
 
         //subscriber frmw_qos_profileor real life scanner:
-        subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("camera/depth/color/points", 1 , std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
+        subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("camera/depth/color/points", 10 , std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
 
     }
 
@@ -45,9 +45,10 @@ private:
         
         //Convert ROS pointcloud2 to PCL pointcloud
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud <pcl::PointXYZ>);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in(new pcl::PointCloud <pcl::PointXYZ>);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_projected(new pcl::PointCloud <pcl::PointXYZ>);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud <pcl::PointXYZ>);
-        pcl::fromROSMsg(*pc_in, *cloud);
+        pcl::fromROSMsg(*pc_in, *cloud_in);
 
 
 
@@ -67,7 +68,7 @@ private:
         matrix (1, 3) = -0.16133;
         matrix (2, 3) = 0.17734;
 
-        pcl::transformPointCloud (*cloud , *cloud, matrix);
+        pcl::transformPointCloud (*cloud_in , *cloud, matrix);
 
         //Get minimum z points for ground removal
         pcl::PointXYZ minPt, maxPt;
