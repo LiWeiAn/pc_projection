@@ -48,36 +48,33 @@ int main(int argc, char * argv[])
         pass.setInputCloud (cloud);
         pass.setFilterFieldName ("y");
         pass.setFilterLimits (minPt.y, maxPt.y-0.2);
-//pass.setFilterLimitsNegative (false);
+        //pass.setFilterLimitsNegative (false);
         pass.filter (*cloud_filtered);
 
         // Create a set of planar coefficients with X=Z=0,Y=1
-//        pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-//        coefficients->values.resize (4);
-//        coefficients->values[0] = 0;
-//        coefficients->values[1] = 1.0;
-//        coefficients->values[2] = 0;
-//        coefficients->values[3] = 0;
-//
-//        // Create the filtering object
-//        pcl::ProjectInliers<pcl::PointXYZRGB> proj;
-//        proj.setModelType (pcl::SACMODEL_PLANE);
-//        proj.setInputCloud (cloud_filtered);
-//        proj.setModelCoefficients (coefficients);
-//        proj.filter (*cloud_projected);
+        pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
+        coefficients->values.resize (4);
+        coefficients->values[0] = 0;
+        coefficients->values[1] = 1.0;
+        coefficients->values[2] = 0;
+        coefficients->values[3] = 0;
+
+        // Create the filtering object
+        pcl::ProjectInliers<pcl::PointXYZRGB> proj;
+        proj.setModelType (pcl::SACMODEL_PLANE);
+        proj.setInputCloud (cloud_filtered);
+        proj.setModelCoefficients (coefficients);
+        proj.filter (*cloud_projected);
 
 
     viewer.setBackgroundColor (0, 0, 0);
-    viewer.addPointCloud<pcl::PointXYZRGB> (cloud_filtered, "sample cloud");
+    viewer.addPointCloud<pcl::PointXYZRGB> (cloud_projected, "sample cloud");
     viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
     viewer.addCoordinateSystem (1.0);
     viewer.initCameraParameters ();
     while (!viewer.wasStopped ()) {
         viewer.spinOnce();
     }
-
-//        viewer.showCloud (cloud);
-//    while (!viewer.wasStopped ()){}
 
     return 0;
 }

@@ -58,15 +58,15 @@ private:
         matrix (0, 1) = 0.0;
         matrix (0, 2) = 1.0;
         matrix (1, 0) = -1.0;
-        matrix (1, 1) = 0.002;
+        matrix (1, 1) = 0.0;//
         matrix (1, 2) = 0.0;
-        matrix (2, 0) = -0.002;
+        matrix (2, 0) = -0.0;//
         matrix (2, 1) = -1.0;
         matrix (2, 2) = 0.0;
 
-        matrix (0, 3) = 0.295;
-        matrix (1, 3) = -0.16133;
-        matrix (2, 3) = 0.17734;
+        // matrix (0, 3) = 0.295;
+         matrix (1, 3) = -0.16133;
+        // matrix (2, 3) = 0.17734;
 
         pcl::transformPointCloud (*cloud_in , *cloud, matrix);
 
@@ -103,6 +103,7 @@ private:
         sensor_msgs::msg::PointCloud2 output;
         rclcpp::Time t = rclcpp::Node::now();
         output.header.stamp = t;
+        
         pcl::toROSMsg(*cloud_projected, output);
         publisher_->publish(output);
 
