@@ -31,11 +31,11 @@ public:
         publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("projected_pointcloud", 10);
         
         //subscriber for simulation (gazebo):
-        //subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>("scan", rclcpp::QoS(rclcpp::SystemDefaultsQoS()), std::bind(&MinimalPublisher::scanCallback, this, _1));
+        //subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("depth_sensor_right/point_cloud", rclcpp::QoS(rclcpp::SystemDefaultsQoS()), std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
         //this->set_parameter(rclcpp::Parameter("use_sim_time", true));
 
-        //subscriber frmw_qos_profileor real life scanner:
-        subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("camera/depth/color/points", 10 , std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
+        //subscriber frmw_qos_profileor real life scanner:          camera/depth/color/points
+        subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("serena/camera/right/depth/color/points", 10 , std::bind(&MinimalPublisher::pcCallback, this, std::placeholders::_1));
 
     }
 
@@ -54,6 +54,22 @@ private:
 
         Eigen::Matrix4f matrix = Eigen::Matrix4f::Identity();
 
+
+        // matrix (0, 0) = 0.8090;
+        // matrix (0, 1) = 0.0;
+        // matrix (0, 2) = -0.5877;
+        // matrix (1, 0) = 0.0;
+        // matrix (1, 1) = 0.1;
+        // matrix (1, 2) = 0.0;
+        // matrix (2, 0) = 0.5877;
+        // matrix (2, 1) = 0.0;
+        // matrix (2, 2) = 0.8090;
+
+        // matrix (0, 3) = 0.2212;
+        // matrix (1, 3) = 0.194;
+        // matrix (2, 3) = -0.1612;
+
+
         matrix (0, 0) = 0.0;
         matrix (0, 1) = 0.0;
         matrix (0, 2) = 1.0;
@@ -64,9 +80,9 @@ private:
         matrix (2, 1) = -1.0;
         matrix (2, 2) = 0.0;
 
-        // matrix (0, 3) = 0.295;
-         matrix (1, 3) = -0.16133;
-        // matrix (2, 3) = 0.17734;
+        // // matrix (0, 3) = 0.295;
+        //  matrix (1, 3) = -0.16133;
+        // // matrix (2, 3) = 0.17734;
 
         pcl::transformPointCloud (*cloud_in , *cloud, matrix);
 
@@ -98,11 +114,19 @@ private:
         proj.setModelCoefficients (coefficients);
         proj.filter (*cloud_projected);
 
+        pcl::PassThrough<pcl::PointXYZ> pass_x;
+        pass_x.setInputCloud (cloud_projected);
+        pass_x.setFilterFieldName ("x");
+        pass_x.setFilterLimits (0,2);
+
+        pass_x.filter (*cloud_projected);
+
+
         //viewer.showCloud (cloud_projected);
 
         sensor_msgs::msg::PointCloud2 output;
         rclcpp::Time t = rclcpp::Node::now();
-        output.header.stamp = t;
+        output.header.stamp = pc_in->header.stamp;
         
         pcl::toROSMsg(*cloud_projected, output);
         publisher_->publish(output);
